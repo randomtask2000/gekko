@@ -6,7 +6,7 @@ const log = require('../../core/log');
 var config = util.getConfig();
 var dirs = util.dirs();
 
-var Fetcher = require(dirs.exchanges + 'binance');
+var Fetcher = require(dirs.exchanges + 'coinfalcon');
 
 util.makeEventEmitter(Fetcher);
 
@@ -18,23 +18,16 @@ var fetcher = new Fetcher(config.watch);
 
 var fetch = () => {
   fetcher.import = true;
+  log.debug('[CoinFalcon] Getting trades from: ', from);
   fetcher.getTrades(from, handleFetch);
 };
 
-var handleFetch = (err, trades) => {
-  if (err) {
-    log.error(`There was an error importing from Binance ${err}`);
-    fetcher.emit('done');
-    return fetcher.emit('trades', []);
-}
-
+var handleFetch = (unk, trades) => {
   if (trades.length > 0) {
     var last = moment.unix(_.last(trades).date).utc();
-    // Conversion to milliseconds epoch time means we have to compensate for possible leap seconds
-    var next = from.clone().add(1, 'h').subtract(1, 's');
+    var next = last.clone();
   } else {
-    // Conversion to milliseconds epoch time means we have to compensate for possible leap seconds
-    var next = from.clone().add(1, 'h').subtract(1, 's');
+    var next = from.clone().add(1, 'h');
     log.debug('Import step returned no results, moving to the next 1h period');
   }
 
